@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendaciones - CineVerse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #e11d48;
+            --gold: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; padding: 40px; }
+        
+        .back-link { display: inline-block; margin-bottom: 30px; color: #38bdf8; text-decoration: none; font-weight: 500; }
+        .back-link:hover { text-decoration: underline; }
+
+        .detail-banner { background-color: var(--card-bg); border-radius: 16px; padding: 30px; display: flex; gap: 30px; margin-bottom: 40px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4); }
+        .detail-poster { width: 220px; height: 320px; border-radius: 8px; overflow: hidden; background: #334155; flex-shrink: 0; }
+        .detail-poster img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .detail-content { display: flex; flex-direction: column; justify-content: center; }
+        .detail-title { font-size: 32px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); }
+        .detail-meta { font-size: 15px; color: var(--text-secondary); margin-bottom: 15px; }
+        .detail-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.6; margin-top: 15px; }
+
+        h3 { font-size: 22px; font-weight: 600; margin-bottom: 20px; border-left: 4px solid var(--accent); padding-left: 12px; }
+
+        .recommendation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .rec-card { background-color: var(--card-bg); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; display: flex; flex-direction: column; }
+        .rec-card:hover { transform: translateY(-4px); }
+        .rec-poster { width: 100%; height: 260px; background: #334155; }
+        .rec-poster img { width: 100%; height: 100%; object-fit: cover; }
+        .rec-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+        .rec-title { font-size: 16px; font-weight: 600; color: var(--text-primary); text-decoration: none; margin-bottom: 8px; }
+        .rec-title:hover { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <a href="{% url 'movies:movie_list' %}" class="back-link">&larr; Volver al Catálogo</a>
+
+    <div class="detail-banner">
+        <div class="detail-poster">
+            {% if movie.poster %}
+                <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
+            {% else %}
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;">Sin Póster</div>
+            {% endif %}
+        </div>
+        <div class="detail-content">
+            <h1 class="detail-title">{{ movie.title }}</h1>
+            <div class="detail-meta">
+                <span>{{ movie.release_year }}</span> &bull; 
+                <span>Director: <strong>{{ movie.director|default:"Desconocido" }}</strong></span> &bull; 
+                <span>Géneros: {% for g in movie.genres.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+            </div>
+            <p><strong>Calificación Promedio:</strong> {% if movie.avg_rating %}★ {{ movie.avg_rating|floatformat:1 }}{% else %}★ S/C{% endif %}</p>
+            <p class="detail-desc">{{ movie.description }}</p>
+        </div>
+    </div>
+
+    <h3>Películas Recomendadas (Mismo Género, Mejor Valoradas)</h3>
+    <div class="recommendation-grid">
+        {% for rec in recommendations %}
+            <div class="rec-card">
+                <div class="rec-poster">
+                    {% if rec.poster %}
+                        <img src="{{ rec.poster.url }}" alt="{{ rec.title }}">
+                    {% else %}
+                        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:12px;">Sin Póster</div>
+                    {% endif %}
+                </div>
+                <div class="rec-info">
+                    <div style="font-size: 12px; color: var(--gold); margin-bottom: 4px;">{% if rec.avg_rating %}★ {{ rec.avg_rating|floatformat:1 }}{% else %}★ S/C{% endif %}</div>
+                    <a href="{% url 'movies:movie_recommendation' rec.id %}" class="rec-title">{{ rec.title }} ({{ rec.release_year }})</a>
+                </div>
+            </div>
+        {% empty %}
+            <p style="color: var(--text-secondary);">No hay recomendaciones disponibles para los géneros de esta película.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>
